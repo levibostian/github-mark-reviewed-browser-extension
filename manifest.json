@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "GitHub Mark Viewed",
+  "version": "1.0.0",
+  "description": "Press Q on a GitHub pull request \"Files changed\" page to mark the file you are looking at as viewed.",
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "github-mark-viewed@levibostian.dev",
+      "strict_min_version": "109.0"
+    }
+  }
+}
