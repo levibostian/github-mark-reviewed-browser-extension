@@ -1,0 +1,21 @@
+name: Lint
+
+on:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # Installs web-ext at the version pinned in mise.toml (Renovate-kept).
+      - uses: jdx/mise-action@c0db02f8dfa7ea21495220a9b75064f06018b13f # v5.0.1
+        with:
+          install: true
+          cache: true
+
+      # Runs Mozilla's add-on validator (same one AMO uses when signing).
+      # Fails the PR if the extension has any lint errors.
+      - name: web-ext lint
+        run: web-ext lint
