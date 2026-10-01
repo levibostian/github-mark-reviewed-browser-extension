@@ -1,0 +1,58 @@
+name: Deploy Release
+
+on:
+  push:
+    branches: [main]
+  # decaf runs the deployment in test mode on PRs to preview what a merge will release.
+  pull_request:
+
+jobs:
+  make-new-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Create the git tag and GitHub Release.
+      pull-requests: write # decaf's PR comments showing the simulated release.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # Installs web-ext at the version pinned in mise.toml (Renovate-kept).
+      - uses: jdx/mise-action@c0db02f8dfa7ea21495220a9b75064f06018b13f # v5.0.1
+        with:
+          install: true
+          cache: true
+
+      - uses: levibostian/decaf@366970ed9e5059c9a9cf3b3237b3f19dfa0369ad # 0.17.3
+        env:
+          # Required by the gh CLI inside decaf's shebang scripts.
+          GH_TOKEN: ${{ github.token }}
+          # MOZ_API_KEY (JWT issuer) + MOZ_API_SECRET (JWT secret).
+          WEB_EXT_API_KEY: ${{ secrets.MOZ_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.MOZ_API_SECRET }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          get_latest_release_current_branch: decaf shebang https://github.com/levibostian/decaf-script-github-releases.git/shebang.sh@1.3.0 get
+          get_next_release_version: decaf shebang https://github.com/levibostian/decaf-script-conventional-commits.git/shebang.sh@0.3.1
+          # decaf runs each line of the deploy string in its own shell, so each
+          # line is intentionally one standalone command (no shared shell
+          # variables between them). {{nextVersionName}} is substituted by
+          # decaf before the shell runs.
+          #
+          # Attaching the .xpi to the GitHub Release is real deployment work, so
+          # it is skipped when decaf runs in test mode (pull requests): test mode
+          # creates no real release, so there is nothing to attach the asset to.
+          # {{testMode}} is replaced by decaf with a boolean before the shell
+          # runs. The if/else must stay on one line: decaf splits the deploy
+          # input by newline before rendering, so each line renders to exactly
+          # one command.
+          #
+          # Every " and $ below is escaped because decaf's action passes this
+          # input raw into a double-quoted argument (--deploy "..."), so the
+          # outer bash would otherwise end the string early (syntax error near
+          # unexpected token `(') and expand $(...) too soon, before decaf's
+          # webext script has produced the .xpi. The escapes are removed by that
+          # outer bash, so decaf receives plain quotes and $(...) and expands
+          # them in its own shell at deploy time.
+          deploy: |
+            decaf shebang https://github.com/levibostian/decaf-script-webext.git/shebang.sh@0.1.0 --channel unlisted
+            {{ if (testMode) }}echo \"Skipping GitHub Release asset upload (test mode)\"{{ else }}decaf shebang https://github.com/levibostian/decaf-script-github-releases.git/shebang.sh@1.3.0 set-assets \"\$(ls web-ext-artifacts/*.xpi | head -n 1)#github-mark-viewed.xpi\"{{ /if }}
+            decaf shebang https://github.com/levibostian/decaf-script-github-releases.git/shebang.sh@1.3.0 set

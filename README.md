@@ -30,12 +30,27 @@ No config, no options page, no permissions. Install, enable, done.
 
 ### Firefox
 
-1. Open `about:debugging#/runtime/this-firefox`.
-2. Click **Load Temporary Add-on** and select `manifest.json` from this folder.
+Temporary (dev): `about:debugging#/runtime/this-firefox` → **Load Temporary
+Add-on** → select `manifest.json`. Unloads on restart.
 
-Note: Firefox temporary add-ons unload when Firefox restarts, so re-load it
-after a restart. (Permanent installation requires signing through
-addons.mozilla.org, which is out of scope for this personal extension.)
+Permanent: Firefox requires a **Mozilla-signed** `.xpi`; release Firefox
+refuses unsigned installs. Self-distribute through addons.mozilla.org:
+
+1. Sign in at addons.mozilla.org → Developer Hub → become a developer.
+2. **Submit a new add-on** → upload a zip of `manifest.json` + `content.js`.
+3. Choose **self-distribution** (private, automated validation only, no
+   human review, invisible in search).
+4. Download the signed `.xpi` and drag it onto Firefox → install
+   permanently. Keep the `.xpi` somewhere (e.g. a GitHub Release).
+
+Alternative, from the CLI with Developer Hub API keys:
+
+```sh
+npx web-ext sign --api-key=<key> --api-secret=<secret> --channel=unlisted
+```
+
+**After any code change:** bump `version` in `manifest.json`, re-sign, and
+reinstall — Firefox signatures are bound to the file hash.
 
 ## Files
 
