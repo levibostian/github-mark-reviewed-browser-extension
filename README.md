@@ -30,27 +30,8 @@ No config, no options page, no permissions. Install, enable, done.
 
 ### Firefox
 
-Temporary (dev): `about:debugging#/runtime/this-firefox` → **Load Temporary
-Add-on** → select `manifest.json`. Unloads on restart.
-
-Permanent: Firefox requires a **Mozilla-signed** `.xpi`; release Firefox
-refuses unsigned installs. Self-distribute through addons.mozilla.org:
-
-1. Sign in at addons.mozilla.org → Developer Hub → become a developer.
-2. **Submit a new add-on** → upload a zip of `manifest.json` + `content.js`.
-3. Choose **self-distribution** (private, automated validation only, no
-   human review, invisible in search).
-4. Download the signed `.xpi` and drag it onto Firefox → install
-   permanently. Keep the `.xpi` somewhere (e.g. a GitHub Release).
-
-Alternative, from the CLI with Developer Hub API keys:
-
-```sh
-npx web-ext sign --api-key=<key> --api-secret=<secret> --channel=unlisted
-```
-
-**After any code change:** bump `version` in `manifest.json`, re-sign, and
-reinstall — Firefox signatures are bound to the file hash.
+1. Open the [latest GitHub release](https://github.com/levibostian/github-mark-reviewed-browser-extension/releases/latest).
+2. Click `github-mark-viewed.xpi` and Firefox prompts you to install it.
 
 ## Files
 
